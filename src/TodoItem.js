@@ -15,8 +15,7 @@ const Title = styled.div``;
 
 const DeleteButton = styled.button``;
 
-function TodoItem({ task, onDelete, onChecked}) {
-  // const [isEditing, setIsEditing] = React.useState(false);
+function TodoItem({ task, onDelete, onChecked, setCurrentTaskId}) {
   
   const classes = []
   if (task.completed) {
@@ -28,11 +27,11 @@ function TodoItem({ task, onDelete, onChecked}) {
   return (
     <MainContainer>
       <input type="checkbox" checked={task.completed} onChange={() => onChecked(task.id)}/>
-      <span className={classes.join(' ')}>  
+      <span className={classes.join(' ')}>
         <Title>{task.title}</Title>
       </span>
       <DeleteButton onClick={() => onDelete(task.index)}> Delete Item </DeleteButton>
-      {/* <button onClick={setIsEditing(isEditing => !isEditing)}> Edit Item </button> */}
+      <button onClick={()=> setCurrentTaskId(task.id)}> Edit Item </button>
     </MainContainer>
   );
 

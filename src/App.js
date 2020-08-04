@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useEffect, useCallback } from "react";
 import "./App.css";
 import styled from "styled-components";
 import TodoItem from "./TodoItem";
-// import Popup from "./Popup"
+import Popup from "./Popup"
 
 const MainContainer = styled.div`
   width: 100vw;
@@ -30,18 +30,37 @@ const AddButton = styled.button`
 `;
 
 function App() {
-  var [task, setTask] = React.useState("");
+  const [task, setTask] = React.useState("");
+  const [currentTaskId, setCurrentTaskId] = React.useState();
+  const [tasks, setTasks] = React.useState([])
 
-  var [tasks, setTasks] = React.useState([
-    {id: 1, title: 'test', completed: false},
-    {id: 2, title: 'test22', completed: false},
-    {id: 3, title: 'test333', completed: true},
-  ]);
 
-  // const [showPopup, setShowPopup] = React.useState(false)
+  const getTasks = useCallback(() => {
+    if(localStorage.hasOwnProperty('savedTasks')){
+      return JSON.parse(localStorage.getItem('savedTasks'))
+    } else {
+      return [
+        {id: 1, title: 'test', completed: false},
+        {id: 2, title: 'test22', completed: false},
+        {id: 3, title: 'test333', completed: true}, 
+      ]
+    }
+  }, []);
+
+
+  useEffect(()=> {
+    const tasks = getTasks()
+    setTasks(tasks);
+  },[getTasks]);
+
+
+  // just to print variable tasks
+  useEffect(() => {
+    console.log(tasks); //check the result here
+  }, [tasks])
+    
 
   const addTask = () => {
-
     if (task.length) {
       setTasks(
         tasks.concat([
@@ -51,14 +70,17 @@ function App() {
             completed: false
           }])
       )
+      localStorage.setItem('savedTasks', JSON.stringify(tasks));
       setTask("");
     }
+    
   };
 
   const onDelete = (index) => {
     const tasksArray = [...tasks];
     tasksArray.splice(index, 1);
     setTasks(tasksArray);
+    localStorage.setItem('savedTasks', JSON.stringify(tasksArray));
   };
 
   const taskToggled = (index) =>{
@@ -70,18 +92,26 @@ function App() {
         return task
       })
     )
+    localStorage.setItem('savedTasks', JSON.stringify(tasks));
   }
 
-  // const onEdit = (onSaveTitle, index) => {
-  //   setTasks(
-  //     tasks.map(task =>{
-  //       if(task.id === index) {
-  //         task.title = onSaveTitle
-  //       }
-  //       return task
-  //     })
-  //   )
-  // }
+  const onEdit = (newTitle) => {
+    setTasks(
+      tasks.map(task =>{
+        if(task.id === currentTaskId) {
+          task.title = newTitle
+        }
+        return task
+      })
+    )
+    localStorage.setItem('savedTasks', JSON.stringify(tasks));
+  }
+
+  function hidePopup() {
+    setCurrentTaskId(
+      null
+    )
+  }
 
   return (
     <MainContainer>
@@ -96,15 +126,15 @@ function App() {
           key ={task.id}
           onDelete={onDelete} 
           onChecked = {taskToggled}
+          setCurrentTaskId = {setCurrentTaskId}
           // onSaveTitle={onEdit}
         />
       ))}
-      {/* {showPopup ?  
-      <Popup  
-        text='Click "Close Button" to hide popup'
-        closePopup={setShowPopup}/>  
-      : null
-      }  */}
+      {currentTaskId && <Popup
+        task={tasks.find(task => task.id === currentTaskId)}
+        onSaveTitle={onEdit}
+        hidePopup={hidePopup}></Popup>}
+      
     </MainContainer>
     
   );
